@@ -43,21 +43,20 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
     const userId = req.params._id;
-    const userIndex = users.findIndex((u) => u._id === userId);
-    if (userIndex === -1) throw new Error("User not found");
+    const user = users.find((u) => u._id === userId);
+    if (!user) throw new Error("User not found");
 
     const newExercise = {
       description,
       duration: parseInt(duration),
       date: date ? new Date(date).toDateString() : new Date().toDateString(),
       _id: Date.now().toString(),
-      userId,
     };
     exercises.push(newExercise);
-    users[userIndex].exercises.push(newExercise); // Add exercise to user's exercises array
+    user.exercises.push(newExercise); // Add exercise to user's exercises array
 
-    // Send the updated user object with exercise fields added in the response
-    res.json(users[userIndex]);
+    // Send the user object with the exercise fields added in the response
+    res.json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -69,7 +68,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     const user = users.find((u) => u._id === userId);
     if (!user) throw new Error("User not found");
 
-    let userExercises = exercises.filter((e) => e.userId === userId);
+    let userExercises = user.exercises || [];
 
     // Parse query parameters
     const { from, to, limit } = req.query;
