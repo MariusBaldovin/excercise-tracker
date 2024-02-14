@@ -20,7 +20,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "index.html"));
 });
 
-// Routes
 app.post("/api/users", async (req, res) => {
   try {
     const { username } = req.body;
@@ -47,15 +46,15 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     const user = users.find((u) => u._id === userId);
     if (!user) throw new Error("User not found");
 
-    const exercise = {
+    const newExercise = {
       description,
       duration: parseInt(duration),
-      date: date ? new Date(date) : new Date(),
+      date: date ? new Date(date).toDateString() : new Date().toDateString(),
       _id: Date.now().toString(),
       userId,
     };
-    exercises.push(exercise);
-    res.json({ ...user, ...exercise });
+    exercises.push(newExercise);
+    res.json({ ...user, ...newExercise });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -68,11 +67,16 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     if (!user) throw new Error("User not found");
 
     const userExercises = exercises.filter((e) => e.userId === userId);
+    // Format date as string using toDateString() method
+    const formattedExercises = userExercises.map((exercise) => ({
+      ...exercise,
+      date: new Date(exercise.date).toDateString(),
+    }));
     res.json({
       username: user.username,
       _id: user._id,
-      count: userExercises.length,
-      log: userExercises,
+      count: formattedExercises.length,
+      log: formattedExercises,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
