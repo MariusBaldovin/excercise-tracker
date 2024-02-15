@@ -68,11 +68,18 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     if (!user) throw new Error("User not found");
 
     const userExercises = exercises.filter((e) => e.userId === userId);
+
+    // Format the date property for each exercise
+    const formattedExercises = userExercises.map((exercise) => ({
+      ...exercise,
+      date: new Date(exercise.date).toDateString(),
+    }));
+
     res.json({
       username: user.username,
       _id: user._id,
-      count: userExercises.length,
-      log: userExercises,
+      count: formattedExercises.length,
+      log: formattedExercises,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
