@@ -54,8 +54,16 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       _id: Date.now().toString(),
       userId,
     };
+
+    // Add the exercise to the exercises array
     exercises.push(exercise);
-    res.json({ ...user, ...exercise });
+
+    // Update the user object to include the new exercise
+    user.log = user.log || [];
+    user.log.push(exercise);
+
+    // Return the updated user object with the exercise fields added
+    res.json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
