@@ -44,8 +44,17 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
     const userId = req.params._id;
+    console.log("Received exercise data:", req.body);
+    console.log("User ID:", userId);
+
+    // Check if duration is provided and is a valid integer
+    if (!duration || isNaN(parseInt(duration))) {
+      throw new Error("Duration is missing or invalid");
+    }
+
     const userIndex = users.findIndex((u) => u._id === userId);
     if (userIndex === -1) throw new Error("User not found");
+    console.log("Found user:", users[userIndex]);
 
     const exercise = {
       description,
@@ -54,6 +63,8 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       _id: Date.now().toString(),
       userId,
     };
+    console.log("Created exercise:", exercise);
+
     exercises.push(exercise);
 
     // Add the exercise to the user's log
@@ -61,9 +72,18 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       users[userIndex].log = [];
     }
     users[userIndex].log.push(exercise);
+    console.log("Updated user object:", users[userIndex]);
 
-    res.json(users[userIndex]); // Return the user object with the exercise fields added
+    // Return the exercise object in the required format
+    res.json({
+      _id: exercise._id,
+      username: users[userIndex].username,
+      date: exercise.date.toDateString(), // Format the date as required
+      duration: exercise.duration,
+      description: exercise.description,
+    });
   } catch (error) {
+    console.error("Error:", error);
     res.status(400).json({ error: error.message });
   }
 });
