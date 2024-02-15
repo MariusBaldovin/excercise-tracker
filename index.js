@@ -51,17 +51,20 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       description,
       duration: parseInt(duration),
       date: date ? new Date(date) : new Date(),
-      _id: `${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+      _id: Date.now().toString(),
+      userId,
     };
     exercises.push(exercise);
 
-    // Combine the user data and exercise data into a single response object
+    // Create a new object that includes both user and exercise data
     const response = {
-      username: user.username,
-      _id: user._id,
-      description: exercise.description,
-      duration: exercise.duration,
-      date: exercise.date.toDateString(),
+      ...user,
+      exercise: {
+        description: exercise.description,
+        duration: exercise.duration,
+        date: exercise.date.toDateString(),
+        _id: exercise._id,
+      },
     };
 
     res.json(response);
