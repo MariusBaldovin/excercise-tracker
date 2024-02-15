@@ -67,7 +67,31 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     const user = users.find((u) => u._id === userId);
     if (!user) throw new Error("User not found");
 
-    const userExercises = exercises.filter((e) => e.userId === userId);
+    let userExercises = exercises.filter((e) => e.userId === userId);
+
+    // Parse query parameters
+    const { from, to, limit } = req.query;
+
+    // Apply date range filtering
+    if (from || to) {
+      const fromDate = from ? new Date(from) : null;
+      const toDate = to ? new Date(to) : null;
+      userExercises = userExercises.filter((e) => {
+        const exerciseDate = new Date(e.date);
+        if (fromDate && toDate) {
+          return exerciseDate >= fromDate && exerciseDate <= toDate;
+        } else if (fromDate) {
+          return exerciseDate >= fromDate;
+        } else {
+          return exerciseDate <= toDate;
+        }
+      });
+    }
+
+    // Apply limit filtering
+    if (limit) {
+      userExercises = userExercises.slice(0, parseInt(limit));
+    }
 
     // Format the date property for each exercise
     const formattedExercises = userExercises.map((exercise) => ({
