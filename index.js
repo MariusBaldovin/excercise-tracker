@@ -40,38 +40,69 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/users/:_id/exercises", async (req, res) => {
-  try {
-    const { description, duration, date } = req.body;
-    const userId = req.params._id;
-    const user = users.find((u) => u._id === userId);
-    if (!user) throw new Error("User not found");
+app.post(
+  "/api/users/:_id/exercises",
+  [
+    check("description", "desc: Path `description` is required").isLength({
+      min: 1,
+    }),
+    check("duration", "duration: Path `duration` is required with valid number")
+      .matches(/^[0-9]+$/)
+      .isLength({ min: 1 }),
+  ],
+  (req, res) => {
+    let id = req.params._id;
+    let desc = req.body.description;
+    let dur = req.body.duration;
+    let date = req.body.date;
 
-    const exercise = {
-      description,
-      duration: parseInt(duration),
-      date: date ? new Date(date) : new Date(),
-      _id: Date.now().toString(),
-      userId,
-    };
-    exercises.push(exercise);
+    Alldata = dataManagement("load data");
+    const errors = validationResult(req);
 
-    // Create a new object that includes both user and exercise data
-    const response = {
-      ...user,
-      exercise: {
-        description: exercise.description,
-        duration: exercise.duration,
-        date: exercise.date.toDateString(),
-        _id: exercise._id,
-      },
-    };
+    if (!errors.isEmpty()) {
+      res.json(errors);
+    } else if (Alldata === undefined) {
+      return res.json({ data: "no data" });
+    } else {
+      //find input user id on existing data -> if user is exist then update user's log
+      let id_Exist = Alldata.map((d) => d._id);
+      let found_user = Alldata[id_Exist.indexOf(id)];
 
-    res.json(response);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+      if (found_user == undefined) {
+        return res.json({ user_id: "Invalid user id" });
+      } else {
+        //Validate input date
+        let isValidDate = Date.parse(date);
+        if (isNaN(isValidDate)) {
+          date = new Date().toDateString();
+        } else {
+          date = new Date(date).toDateString();
+        }
+
+        //Update user log
+        let username = found_user.username;
+        let _id = found_user._id;
+
+        let count_Exist = parseInt(found_user.count);
+        let count = (count_Exist += 1);
+
+        let log_Exist = found_user.log;
+        let log_input = { description: desc, duration: dur, date: date };
+        let log = log_Exist.concat(log_input);
+
+        user = { username: username, _id: _id, count: count, log: log };
+        dataManagement("save data", user);
+        return res.json({
+          _id: _id,
+          username: username,
+          date: date,
+          duration: parseInt(dur),
+          description: desc,
+        });
+      }
+    }
   }
-});
+);
 
 app.get("/api/users/:_id/logs", async (req, res) => {
   try {
