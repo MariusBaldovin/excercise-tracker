@@ -48,11 +48,11 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     if (!user) throw new Error("User not found");
 
     const exercise = {
-      _id: user._id,
-      username: user.username,
       description,
       duration: parseInt(duration),
-      date: date ? new Date(date).toDateString() : new Date().toDateString(),
+      date: date ? new Date(date) : new Date(),
+      _id: Date.now().toString(),
+      userId,
     };
     exercises.push(exercise);
     res.json({ ...user, ...exercise });
@@ -64,39 +64,10 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 app.get("/api/users/:_id/logs", async (req, res) => {
   try {
     const userId = req.params._id;
-    const { from, to, limit } = req.query;
     const user = users.find((u) => u._id === userId);
     if (!user) throw new Error("User not found");
 
-    let userExercises = exercises.filter((e) => e.userId === userId);
-
-    // Apply date range filtering
-    if (from || to) {
-      const fromDate = from ? new Date(from) : null;
-      const toDate = to ? new Date(to) : null;
-      userExercises = userExercises.filter((e) => {
-        const exerciseDate = new Date(e.date);
-        if (fromDate && toDate) {
-          return exerciseDate >= fromDate && exerciseDate <= toDate;
-        } else if (fromDate) {
-          return exerciseDate >= fromDate;
-        } else {
-          return exerciseDate <= toDate;
-        }
-      });
-    }
-
-    // Apply limit filtering
-    if (limit) {
-      userExercises = userExercises.slice(0, parseInt(limit));
-    }
-
-    // Format the date property for each exercise
-    userExercises = userExercises.map((e) => ({
-      ...e,
-      date: e.date.toDateString(),
-    }));
-
+    const userExercises = exercises.filter((e) => e.userId === userId);
     res.json({
       username: user.username,
       _id: user._id,
