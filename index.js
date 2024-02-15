@@ -44,46 +44,39 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
     const userId = req.params._id;
-    console.log("Received exercise data:", req.body);
-    console.log("User ID:", userId);
 
-    // Check if duration is provided and is a valid integer
-    if (!duration || isNaN(parseInt(duration))) {
-      throw new Error("Duration is missing or invalid");
+    // Find the user by ID
+    const user = users.find((u) => u._id === userId);
+    if (!user) {
+      throw new Error("User not found");
     }
 
-    const userIndex = users.findIndex((u) => u._id === userId);
-    if (userIndex === -1) throw new Error("User not found");
-    console.log("Found user:", users[userIndex]);
-
+    // Create the exercise object
     const exercise = {
+      username: user.username,
       description,
       duration: parseInt(duration),
       date: date ? new Date(date) : new Date(),
-      _id: Date.now().toString(),
-      userId,
+      _id: Date.now().toString(), // Generate a unique exercise ID
+      userId: user._id, // Use the user's ID for consistency
     };
-    console.log("Created exercise:", exercise);
 
-    exercises.push(exercise);
-
-    // Add the exercise to the user's log
-    if (!users[userIndex].log) {
-      users[userIndex].log = [];
+    // Push the exercise to the user's log
+    if (!user.log) {
+      user.log = [];
     }
-    users[userIndex].log.push(exercise);
-    console.log("Updated user object:", users[userIndex]);
+    user.log.push(exercise);
 
-    // Return the exercise object in the required format
+    // Return the user object with the exercise fields added
     res.json({
-      _id: exercise._id,
-      username: users[userIndex].username,
-      date: exercise.date.toDateString(), // Format the date as required
-      duration: exercise.duration,
+      username: user.username,
+      _id: user._id,
       description: exercise.description,
+      duration: exercise.duration,
+      date: exercise.date.toDateString(), // Format the date as required
+      _id: exercise._id,
     });
   } catch (error) {
-    console.error("Error:", error);
     res.status(400).json({ error: error.message });
   }
 });
