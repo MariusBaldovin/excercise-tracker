@@ -44,8 +44,8 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
     const userId = req.params._id;
-    const user = users.find((u) => u._id === userId);
-    if (!user) throw new Error("User not found");
+    const userIndex = users.findIndex((u) => u._id === userId);
+    if (userIndex === -1) throw new Error("User not found");
 
     const exercise = {
       description,
@@ -55,7 +55,14 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       userId,
     };
     exercises.push(exercise);
-    res.json({ ...user, ...exercise });
+
+    // Add the exercise to the user's log
+    if (!users[userIndex].log) {
+      users[userIndex].log = [];
+    }
+    users[userIndex].log.push(exercise);
+
+    res.json(users[userIndex]); // Return the user object with the exercise fields added
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
