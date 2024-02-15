@@ -40,32 +40,22 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/users/:userId/exercises", async (req, res) => {
+app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
-    const userId = req.params.userId;
-
+    const userId = req.params._id;
     const user = users.find((u) => u._id === userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const exerciseDate = date ? new Date(date) : new Date();
-    const formattedDate = exerciseDate.toDateString();
+    if (!user) throw new Error("User not found");
 
     const exercise = {
-      username: user.username,
-      _id: user._id,
-      date: formattedDate,
-      duration: parseInt(duration),
       description,
+      duration: parseInt(duration),
+      date: date ? new Date(date) : new Date(),
+      _id: Date.now().toString(),
+      userId,
     };
-
-    // Add the exercise to the exercises array
     exercises.push(exercise);
-
-    // Return the exercise object
-    res.json(exercise);
+    res.json({ ...user, ...exercise });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -209,5 +199,41 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+
+
+
+
+
+app.post("/api/users/:userId/exercises", async (req, res) => {
+  try {
+    const { description, duration, date } = req.body;
+    const userId = req.params.userId;
+
+    const user = users.find((u) => u._id === userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const exerciseDate = date ? new Date(date) : new Date();
+    const formattedDate = exerciseDate.toDateString();
+
+    const exercise = {
+      username: user.username,
+      _id: user._id,
+      date: formattedDate,
+      duration: parseInt(duration),
+      description,
+    };
+
+    // Add the exercise to the exercises array
+    exercises.push(exercise);
+
+    // Return the exercise object
+    res.json(exercise);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 */
