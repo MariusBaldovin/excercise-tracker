@@ -40,49 +40,34 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/users/:_id/exercises", async (req, res) => {
+app.post("/api/users/:userId/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
     const userId = req.params.userId;
 
-    console.log("Received exercise data:", req.body);
-    console.log(
-      "Exercise data: description:",
-      description,
-      "duration:",
-      duration,
-      "date:",
-      date
-    );
-    console.log("User ID:", userId);
-
     const user = users.find((u) => u._id === userId);
-    console.log("Found user:", user);
-
     if (!user) {
-      console.log("User not found");
       throw new Error("User not found");
     }
+
+    const exerciseDate = date ? new Date(date) : new Date();
+
+    const formattedDate = exerciseDate.toDateString();
 
     const exercise = {
       description,
       duration: parseInt(duration),
-      date: date ? new Date(date) : new Date(),
+      date: formattedDate, // Format the date using toDateString()
       _id: Date.now().toString(),
       userId,
     };
 
-    console.log("Created exercise:", exercise);
-
     // Add the exercise to the exercises array
     exercises.push(exercise);
-    console.log("Exercises array after push:", exercises);
 
     // Update the user object to include the new exercise
     user.log = user.log || [];
     user.log.push(exercise);
-
-    console.log("Updated user object:", user);
 
     // Return the updated user object with the exercise fields added
     res.json({
@@ -91,7 +76,6 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       log: user.log,
     });
   } catch (error) {
-    console.error("Error:", error);
     res.status(400).json({ error: error.message });
   }
 });
