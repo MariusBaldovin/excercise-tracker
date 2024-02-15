@@ -40,37 +40,60 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/users/:_id/exercises", async (req, res) => {
-  try {
-    const { description, duration, date } = req.body;
-    const userId = req.params._id;
-    const user = users.find((u) => u._id === userId);
-    if (!user) throw new Error("User not found");
+app.post("/api/users/:_id/exercises", (req, res) => {
+  const userId = req.params._id;
+  const { description, duration } = req.body;
+  let { date } = req.body;
 
-    const exercise = {
-      description,
-      duration: parseInt(duration),
-      date: date ? new Date(date) : new Date(),
-      _id: Date.now().toString(),
-      userId,
-    };
-    exercises.push(exercise);
-
-    // Create a new object that includes both user and exercise data
-    const response = {
-      ...user,
-      exercise: {
-        description: exercise.description,
-        duration: exercise.duration,
-        date: exercise.date.toDateString(),
-        _id: exercise._id,
-      },
-    };
-
-    res.json(response);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+  // Check if required fields are present
+  if (!description || !duration) {
+    return res
+      .status(422)
+      .json({ error: "Description and duration are required" });
   }
+
+  // Find the user by ID
+  const foundUser = users.find((user) => user._id === userId);
+
+  if (!foundUser) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // Validate and format the date
+  if (!date || isNaN(Date.parse(date))) {
+    date = new Date().toDateString();
+  } else {
+    date = new Date(date).toDateString();
+  }
+
+  // Convert duration to integer
+  const parsedDuration = parseInt(duration);
+
+  // Check if duration is a valid number
+  if (isNaN(parsedDuration) || parsedDuration <= 0) {
+    return res
+      .status(422)
+      .json({ error: "Duration must be a valid positive number" });
+  }
+
+  // Update user log
+  const log = {
+    description,
+    duration: parsedDuration,
+    date,
+  };
+  exercises.push(log);
+
+  // Prepare response
+  const response = {
+    _id: foundUser._id,
+    username: foundUser.username,
+    date,
+    duration: parsedDuration,
+    description,
+  };
+
+  res.json(response);
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
