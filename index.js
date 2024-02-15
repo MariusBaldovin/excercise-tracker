@@ -45,21 +45,21 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
     const userId = req.params._id;
-    const user = users.find((u) => u._id === userId);
-    if (!user) throw new Error("User not found");
+    const userIndex = users.findIndex((u) => u._id === userId);
+    if (userIndex === -1) throw new Error("User not found");
 
-    const exercise = {
+    const newExercise = {
       description,
       duration: parseInt(duration),
-      date: date ? new Date(date) : new Date(),
+      date: date ? new Date(date).toDateString() : new Date().toDateString(),
       _id: Date.now().toString(),
       userId,
     };
-    exercises.push(exercise);
+    exercises.push(newExercise);
+    users[userIndex].exercises.push(newExercise); // Add exercise to user's exercises array
 
-    // Construct the response according to the User and Exercise structure
-    const response = { ...user, ...exercise };
-    res.json(response);
+    // Send the updated user object with exercise fields added in the response
+    res.json(users[userIndex]);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
