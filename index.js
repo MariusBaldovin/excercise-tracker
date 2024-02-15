@@ -40,6 +40,7 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+// POST /api/users/:_id/exercises route handler
 app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
@@ -55,12 +56,16 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       userId,
     };
     exercises.push(exercise);
-    res.json({ ...user, ...exercise });
+
+    // Construct the response according to the User and Exercise structure
+    const response = { ...user, ...exercise };
+    res.json(response);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
+// GET /api/users/:_id/logs route handler
 app.get("/api/users/:_id/logs", async (req, res) => {
   try {
     const userId = req.params._id;
@@ -68,12 +73,15 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     if (!user) throw new Error("User not found");
 
     const userExercises = exercises.filter((e) => e.userId === userId);
-    res.json({
+
+    // Construct the response according to the User and Log structure
+    const response = {
       username: user.username,
       _id: user._id,
       count: userExercises.length,
       log: userExercises,
-    });
+    };
+    res.json(response);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
