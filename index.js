@@ -47,14 +47,14 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     console.log("Received exercise data:", req.body);
     console.log("User ID:", userId);
 
-    // Check if duration is provided and is a valid integer
+    /* // Check if duration is provided and is a valid integer
     if (!duration || isNaN(parseInt(duration))) {
       throw new Error("Duration is missing or invalid");
     }
 
     const userIndex = users.findIndex((u) => u._id === userId);
     if (userIndex === -1) throw new Error("User not found");
-    console.log("Found user:", users[userIndex]);
+    console.log("Found user:", users[userIndex]); */
 
     const exercise = {
       description,
