@@ -67,12 +67,12 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 
     exercises.push(exercise);
 
-    // Add the exercise to the user's log
+    /*// Add the exercise to the user's log
     if (!users[userIndex].log) {
       users[userIndex].log = [];
     }
     users[userIndex].log.push(exercise);
-    console.log("Updated user object:", users[userIndex]);
+    console.log("Updated user object:", users[userIndex]); */
 
     // Return the exercise object in the required format
     res.json({
