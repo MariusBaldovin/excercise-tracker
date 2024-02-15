@@ -72,16 +72,49 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     const user = users.find((u) => u._id === userId);
     if (!user) throw new Error("User not found");
 
-    const userExercises = exercises.filter((e) => e.userId === userId);
+    let userExercises = exercises.filter((e) => e.userId === userId);
 
-    // Construct the response according to the User and Log structure
-    const response = {
+    // Parse query parameters
+    const { from, to, limit } = req.query;
+    let fromDate = from ? new Date(from) : null;
+    let toDate = to ? new Date(to) : null;
+    let logLimit = limit ? parseInt(limit) : null;
+
+    // Filter logs based on date range
+    if (fromDate && toDate) {
+      userExercises = userExercises.filter((exercise) => {
+        const exerciseDate = new Date(exercise.date);
+        return exerciseDate >= fromDate && exerciseDate <= toDate;
+      });
+    } else if (fromDate) {
+      userExercises = userExercises.filter((exercise) => {
+        const exerciseDate = new Date(exercise.date);
+        return exerciseDate >= fromDate;
+      });
+    } else if (toDate) {
+      userExercises = userExercises.filter((exercise) => {
+        const exerciseDate = new Date(exercise.date);
+        return exerciseDate <= toDate;
+      });
+    }
+
+    // Limit the number of logs
+    if (logLimit) {
+      userExercises = userExercises.slice(0, logLimit);
+    }
+
+    // Format date as string using toDateString() method
+    const formattedExercises = userExercises.map((exercise) => ({
+      ...exercise,
+      date: new Date(exercise.date).toDateString(), // Adjust date formatting
+    }));
+
+    res.json({
       username: user.username,
       _id: user._id,
-      count: userExercises.length,
-      log: userExercises,
-    };
-    res.json(response);
+      count: formattedExercises.length,
+      log: formattedExercises,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
