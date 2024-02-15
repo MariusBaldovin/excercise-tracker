@@ -51,30 +51,21 @@ app.post("/api/users/:userId/exercises", async (req, res) => {
     }
 
     const exerciseDate = date ? new Date(date) : new Date();
-
     const formattedDate = exerciseDate.toDateString();
 
     const exercise = {
-      description,
+      username: user.username,
+      _id: user._id,
+      date: formattedDate,
       duration: parseInt(duration),
-      date: formattedDate, // Format the date using toDateString()
-      _id: Date.now().toString(),
-      userId,
+      description,
     };
 
     // Add the exercise to the exercises array
     exercises.push(exercise);
 
-    // Update the user object to include the new exercise
-    user.log = user.log || [];
-    user.log.push(exercise);
-
-    // Return the updated user object with the exercise fields added
-    res.json({
-      username: user.username,
-      _id: user._id,
-      log: user.log,
-    });
+    // Return the exercise object
+    res.json(exercise);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
