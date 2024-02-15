@@ -55,19 +55,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       userId,
     };
     exercises.push(exercise);
-
-    // Create a new object that includes both user and exercise data
-    const response = {
-      ...user,
-      exercise: {
-        description: exercise.description,
-        duration: exercise.duration,
-        date: exercise.date.toDateString(),
-        _id: exercise._id,
-      },
-    };
-
-    res.json(response);
+    res.json({ ...user, ...exercise });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
