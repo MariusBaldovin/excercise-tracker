@@ -56,8 +56,13 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     };
     exercises.push(exercise);
 
-    // Update the response to include both user and exercise data
-    res.json({ ...user, exercise });
+    // Create a new object that includes both user and exercise data
+    const response = {
+      ...user,
+      exercise,
+    };
+
+    res.json(response);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
