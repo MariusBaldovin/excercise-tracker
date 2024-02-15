@@ -20,6 +20,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "index.html"));
 });
 
+// Routes
 app.post("/api/users", async (req, res) => {
   try {
     const { username } = req.body;
@@ -43,20 +44,18 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   try {
     const { description, duration, date } = req.body;
     const userId = req.params._id;
-    const userIndex = users.findIndex((u) => u._id === userId);
-    if (userIndex === -1) throw new Error("User not found");
+    const user = users.find((u) => u._id === userId);
+    if (!user) throw new Error("User not found");
 
-    const newExercise = {
+    const exercise = {
       description,
       duration: parseInt(duration),
-      date: date ? new Date(date).toDateString() : new Date().toDateString(),
+      date: date ? new Date(date) : new Date(),
       _id: Date.now().toString(),
       userId,
     };
-    exercises.push(newExercise);
-    users[userIndex].exercises.push(newExercise);
-
-    res.json(users[userIndex]);
+    exercises.push(exercise);
+    res.json({ ...user, ...exercise });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -68,50 +67,19 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     const user = users.find((u) => u._id === userId);
     if (!user) throw new Error("User not found");
 
-    let userExercises = exercises.filter((e) => e.userId === userId);
-
-    const { from, to, limit } = req.query;
-    let fromDate = from ? new Date(from) : null;
-    let toDate = to ? new Date(to) : null;
-    let logLimit = limit ? parseInt(limit) : null;
-
-    if (fromDate && toDate) {
-      userExercises = userExercises.filter((exercise) => {
-        const exerciseDate = new Date(exercise.date);
-        return exerciseDate >= fromDate && exerciseDate <= toDate;
-      });
-    } else if (fromDate) {
-      userExercises = userExercises.filter((exercise) => {
-        const exerciseDate = new Date(exercise.date);
-        return exerciseDate >= fromDate;
-      });
-    } else if (toDate) {
-      userExercises = userExercises.filter((exercise) => {
-        const exerciseDate = new Date(exercise.date);
-        return exerciseDate <= toDate;
-      });
-    }
-
-    if (logLimit) {
-      userExercises = userExercises.slice(0, logLimit);
-    }
-
-    const formattedExercises = userExercises.map((exercise) => ({
-      ...exercise,
-      date: new Date(exercise.date).toDateString(),
-    }));
-
+    const userExercises = exercises.filter((e) => e.userId === userId);
     res.json({
       username: user.username,
       _id: user._id,
-      count: formattedExercises.length,
-      log: formattedExercises,
+      count: userExercises.length,
+      log: userExercises,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
