@@ -48,11 +48,11 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     if (!user) throw new Error("User not found");
 
     const exercise = {
+      _id: user._id,
+      username: user.username,
       description,
       duration: parseInt(duration),
-      date: date ? new Date(date) : new Date(),
-      _id: Date.now().toString(),
-      userId,
+      date: date ? new Date(date).toDateString() : new Date().toDateString(),
     };
     exercises.push(exercise);
     res.json({ ...user, ...exercise });
